@@ -1,7 +1,11 @@
 const mysql = require('mysql')
 const express = require('express')
 const nodemailer = require('nodemailer')
+const jwt = require('jsonwebtoken')
 var app = express()
+
+// jsonwebtoken for agent auth:
+
 
 // node mailer
 var transporter = nodemailer.createTransport({
@@ -12,6 +16,7 @@ var transporter = nodemailer.createTransport({
     }
 })
 
+// mysql config
 var mysqlConnection = mysql.createConnection({
     host: 'localhost',
     user: 'root',
@@ -19,7 +24,6 @@ var mysqlConnection = mysql.createConnection({
     database: 'cnss',
     multipleStatements: true
 })
-
 mysqlConnection.connect()
 
 // afficher tous les agents
@@ -29,6 +33,39 @@ app.get('/agents', (req, res) => {
             res.send(rows)
         else
             console.log(err)
+    })
+})
+
+// midlleware for agent auth
+function auth (req, res, next) {
+    const autHeader = req.headers['authorization']
+    const token = autHeader && autHeader.split(' ')[1]
+    if(token == null){
+        return res.sendStatus(403)
+    }
+    const code = jwt.verify(token, process.env.ACCESS_TOKEN)
+    const agent = mysqlConnection.query('SELECT * FROM agents WHERE id LIKE' + code.id)
+    if(!agent){
+        return res.sendStatus(404)
+    }
+    req.agent = agent
+    next()
+}
+
+// post token for agent
+app.post('/auth', auth, (req, res, next) => {
+    const email = req.body
+    mysqlConnection.query('SELECT * FROM agents WHERE email LIKE ' + email).then(partici => {
+        if(!partici) {
+            res.json({message : "You re Not Allowed"})
+        } else {
+            const email = req.body.email
+            const parti = {parti_name : email}
+            const accessToken = jwt.sign(parti, process.env.ACCESS_TOKEN)
+            res.json({accessToken : accessToken})
+            res.parti = parti
+            next()
+        }
     })
 })
 
