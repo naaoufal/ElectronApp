@@ -1,6 +1,16 @@
 const mysql = require('mysql')
 const express = require('express')
+const nodemailer = require('nodemailer')
 var app = express()
+
+// node mailer
+var transporter = nodemailer.createTransport({
+    service : 'gmail',
+    auth : {
+        user : process.env.GMAIL_USER,
+        pass : process.env.GMAIL_PASSWORD
+    }
+})
 
 var mysqlConnection = mysql.createConnection({
     host: 'localhost',
