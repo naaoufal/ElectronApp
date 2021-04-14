@@ -1,4 +1,5 @@
 const mysql = require('mysql')
+require('dotenv').config()
 const express = require('express')
 const nodemailer = require('nodemailer')
 const jwt = require('jsonwebtoken')
@@ -44,10 +45,8 @@ function auth (req, res, next) {
         return res.sendStatus(403)
     }
     const code = jwt.verify(token, process.env.ACCESS_TOKEN)
-    const agent = mysqlConnection.query('SELECT * FROM agents WHERE id LIKE' + code.id)
-    if(!agent){
-        return res.sendStatus(404)
-    }
+    const agent = mysqlConnection.query(`SELECT * FROM agents WHERE id LIKE = ${code.id} `)
+
     req.agent = agent
     next()
 }
@@ -55,7 +54,7 @@ function auth (req, res, next) {
 // post token for agent
 app.post('/auth', auth, (req, res, next) => {
     const email = req.body
-    mysqlConnection.query('SELECT * FROM agents WHERE email LIKE ' + email).then(partici => {
+    mysqlConnection.query(`SELECT * FROM agents WHERE email LIKE = '${email}' `).then(partici => {
         if(!partici) {
             res.json({message : "You re Not Allowed"})
         } else {
