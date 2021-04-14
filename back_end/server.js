@@ -18,10 +18,10 @@ var transporter = nodemailer.createTransport({
     }
 })
 
-const app = express();
-app.use(...);
+const db = require("./models")
+db.sequelize.sync()
 
-const db = require("./app/models");
-db.sequelize.sync();
+// include routes
+app.use("/api/agents" ,require("./routes/agents.js"))
 
 app.listen(3000, () => console.log('Server is Running on Port : 3000'))

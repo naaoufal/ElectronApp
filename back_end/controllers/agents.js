@@ -1,46 +1,102 @@
-const db = require("../models");
-const Agents = db.agents;
-const Op = db.Sequelize.Op;
+const bcrypt = require('bcrypt');
+const { Admin } = require('../models')
+const jwt = require('jsonwebtoken');
 
-// Create and Save a new Tutorial
-exports.create = (req, res) => {
-  
-};
+const ACCESS_TOKEN = "AB12AC13AD14"
 
-// Retrieve all Tutorials from the database.
-exports.findAll = (req, res) => {
-    Agents.findAll().then(data => {
-        res.send(data)
-      })
-      .catch(err => {
-        res.status(500).send({
-          message:
-            err.message || "Some error occurred while retrieving tutorials."
-        })
-    })
+//  const addAdmin = async (req, res) => {
+
+//         try {
+
+//                 const salt = await bcrypt.genSalt(10);
+//                 const hashPassword = await bcrypt.hash('toor', salt)
+                
+//                 Admin.create({
+//                         email : 'root@gmail.com',
+//                         password : hashPassword
+//                 })
+
+//                 res.send("added")
+                
+//             }
+//             catch (err) {
+//                 res.json(err)
+//             }
+     
+// }
+
+
+
+const login = async (req, res) => {
+
+        const {email , password } = req.body;
+
+        let error = [];
+
+
+        if (!email || !password) {
+
+            error.push('Request missing username or password param')
+
+                return res.json({
+
+                    error : error
+                }
+                    
+                );
+        }
+
+        try {
+
+                let admin = await Admin.findOne({
+
+                        where: {
+                            email: req.body.email
+                        }
+                });
+
+
+                if (!admin) {
+                    error.push('Admin note found')
+                    return res.json({
+                            error : error
+                    })
+                }
+                // res.send(admin)
+
+                if (await bcrypt.compare(password, admin.password)) {
+
+
+                const token = jwt.sign({email: admin.email }, ACCESS_TOKEN);
+
+
+                res.json({
+                        message : "login success",
+                        token : token
+                })
+
+                    
+
+                    
+                }else{
+                    error.push('invalid credentials ');
+                    return res.json({
+                            error : error
+                    }) 
+                }
+
+
+
+
+            }
+            catch (err) {
+
+                return res.status(400).send(err);
+
+            }
+
 }
 
-// Find a single Tutorial with an id
-exports.findOne = (req, res) => {
-  
-};
-
-// Update a Tutorial by the id in the request
-exports.update = (req, res) => {
-  
-};
-
-// Delete a Tutorial with the specified id in the request
-exports.delete = (req, res) => {
-  
-};
-
-// Delete all Tutorials from the database.
-exports.deleteAll = (req, res) => {
-  
-};
-
-// Find all published Tutorials
-exports.findAllPublished = (req, res) => {
-  
-};
+module.exports = {
+    login
+}

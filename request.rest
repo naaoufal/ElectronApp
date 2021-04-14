@@ -1,6 +1,11 @@
-POST  http://localhost:3000/auth
+POST http://localhost:3000/api/agents/add
 Content-Type : application/json
 
 {
-    "email" : "hamzajbili5@gmail.com"
+    "email" : "hamzajbili5@gmail.com",
+    "password" : "azer",
+    "phone" : 12121212
 }
+
+###
+GET http://localhost:3000/api/agents/all
